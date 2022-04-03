@@ -2,19 +2,19 @@ package com.engeto;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Philosopher implements Runnable {
 
     private static boolean[] forks;
-    private static final AtomicInteger allTries = new AtomicInteger(0);
-    private static final AtomicInteger allSuccessfulTries = new AtomicInteger(0);
+    private static final AtomicLong countAllTries = new AtomicLong(0); //counter of all eating tries
+    private static final AtomicLong countAllSuccessfulTries = new AtomicLong(0); //counter of all successful eating tries
 
     private final int id;
     private final int leftForkIndex;
     private final int rightForkIndex;
     private int mealPortion;
-    private int eatingTries = 0;
+    private int countTries = 0;
 
 
     private Philosopher(int id, int mealPortion, int leftForkIndex, int rightForkIndex) {
@@ -52,61 +52,50 @@ public class Philosopher implements Runnable {
 
         while (mealPortion > 0) {
 
-            eatingTries++;
-            allTries.incrementAndGet();
+            countTries++;
+            countAllTries.incrementAndGet();
 
-            /* zdá se že by to fungovalo i takto bez SYNCHRONIZED??
-                if (forks[leftForkIndex] == true && forks[rightForkIndex] == true) {
-
-                    forks[leftForkIndex] = false;
-                    forks[rightForkIndex] = false;
-
-                    mealPortion--;
-                    incrementAllSuccessfulTries();
-
-                    forks[leftForkIndex] = true;
-                    forks[rightForkIndex] = true;
-                }
-            */
-
-            if (getFork(leftForkIndex) && getFork(rightForkIndex)) {
-
-                setFork(leftForkIndex, false);
-                setFork(rightForkIndex, false);
+            if (askAndTakeForks(leftForkIndex, rightForkIndex)) { // resources allocated (synchronized method)
 
                 mealPortion--;
-                allSuccessfulTries.incrementAndGet();
+                countAllSuccessfulTries.incrementAndGet();
 
-                setFork(leftForkIndex, true);
-                setFork(rightForkIndex, true);
+                releaseForks(leftForkIndex, rightForkIndex); // resources released (synchronized method)
             }
         }
 
-        System.out.println("DONE - Philosopher #" + id + " finished his/her meal! Plate check: " + mealPortion + ", eating tries: " + eatingTries
-                + "\n\tDinner finished in: " + (System.currentTimeMillis() - startTime) + " msec ,thread: " + Thread.currentThread());
+        System.out.println("DONE - Philosopher #" + id + " finished his/her meal! Plate check: " + mealPortion
+                + ", eating tries: " + countTries + "\n\tDinner finished in: "
+                + (System.currentTimeMillis() - startTime) + " msec ,thread: " + Thread.currentThread());
     }
 
-    public static int getAllTries() {
-        return allTries.intValue();
+    public static long getAllTries() {
+        return countAllTries.longValue();
     }
 
-    public static int getAllSuccessfulTries() {
-        return allSuccessfulTries.intValue();
+    public static long getAllSuccessfulTries() {
+        return countAllSuccessfulTries.longValue();
     }
 
     public static boolean[] getForks() {
         return forks;
     }
 
-    private static boolean getFork(int index) {
+    private static boolean askAndTakeForks(int leftForkIndex, int rightForkIndex) {
         synchronized (Philosopher.class) {
-            return forks[index];
+            if(forks[leftForkIndex] && forks[rightForkIndex]){
+                forks[leftForkIndex] = false;
+                forks[rightForkIndex] = false;
+                return true;
+            } else
+                return false;
         }
     }
 
-    private static void setFork(int index, boolean value) {
+    private static void releaseForks(int leftForkIndex, int rightForkIndex) {
         synchronized (Philosopher.class) {
-            forks[index] = value;
+            forks[leftForkIndex] = true;
+            forks[rightForkIndex] = true;
         }
     }
 }

@@ -11,7 +11,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        //generate list of philsophers and forks as static parameter of Philosopher Class
+        //generate list of philosophers and forks as static attribute of Philosopher Class
         List<Philosopher> philosophers = Philosopher.generatePhilosophersDinner(NUMBER_OF_PHILOSOPHERS,MEAL_PORTION);
 
         System.out.println("forks availability check before dinner: " + Arrays.toString(Philosopher.getForks()));
@@ -36,7 +36,7 @@ public class Main {
 
         //final checks and statistic
         System.out.println("======== all " + threadList.size() + " threads finished =================================================================");
-        System.out.println("CHECKS - all eating tries: " + Philosopher.getAllTries() + ", all successfull eating tries: " + Philosopher.getAllSuccessfulTries()
+        System.out.println("CHECKS - all eating tries: " + Philosopher.getAllTries() + ", all successful eating tries: " + Philosopher.getAllSuccessfulTries()
                 +  " (should be " + (NUMBER_OF_PHILOSOPHERS * MEAL_PORTION)+")");
         System.out.println("forks availability check after dinner: " + Arrays.toString(Philosopher.getForks()));
     }
